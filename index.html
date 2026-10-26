@@ -1,0 +1,469 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Find your color! ✨ 공주님의 시크릿 뷰티 드레서</title>
+  
+  <!-- Google Fonts: 공주스럽고 우아한 로코코/세리프 & 가독성 높은 한글 폰트 -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel+Decorative:wght@700&family=Great+Vibes&family=Marcellus&family=Noto+Serif+KR:wght@300;400;600;700&family=Playfair+Display:ital,wght@0,600;0,800;1,400;1,600&display=swap" rel="stylesheet">
+  
+  <!-- Font Awesome Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  
+  <!-- CSS Stylesheet -->
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <!-- 배경 반짝이 파티클 캔버스 -->
+  <canvas id="sparkleCanvas" class="sparkle-canvas"></canvas>
+
+  <!-- ========================================== -->
+  <!-- 0. 공주님의 이름 입력 인트로 모달 (Name Gate) -->
+  <!-- ========================================== -->
+  <div class="name-modal-overlay" id="nameModalOverlay">
+    <div class="name-modal-card">
+      <div class="modal-tiara">
+        <i class="fa-solid fa-crown tiara-icon"></i>
+      </div>
+      <h2 class="modal-title">Welcome, Princess!</h2>
+      <p class="modal-subtitle">
+        공주님의 뷰티 드레서에 오신 것을 환영합니다.<br>
+        진단을 시작하기 전, 공주님의 예쁜 성함을 알려주세요 ✨
+      </p>
+
+      <form id="nameForm" class="name-input-form" onsubmit="return false;">
+        <div class="input-wrapper">
+          <i class="fa-solid fa-wand-magic-sparkles input-icon"></i>
+          <input 
+            type="text" 
+            id="userNameInput" 
+            class="princess-input" 
+            placeholder="공주님의 이름을 입력해주세요 (예: 로즈 공주님)" 
+            maxlength="15" 
+            autocomplete="off"
+            autofocus
+          >
+        </div>
+        <button type="button" class="princess-btn btn-rose btn-large" id="enterBtn">
+          <i class="fa-solid fa-sparkles"></i> 뷰티 드레서 열기
+        </button>
+      </form>
+      <div class="modal-bow">🎀</div>
+    </div>
+  </div>
+
+  <!-- 메인 앱 컨테이너 -->
+  <div class="princess-app-container">
+    
+    <!-- 헤더: Find your color! 공주스러운 티아라 & 리본 무드 -->
+    <header class="princess-header">
+      <div class="tiara-decoration">
+        <span class="sparkle-icon left">✨</span>
+        <i class="fa-solid fa-crown tiara-icon"></i>
+        <span class="sparkle-icon right">✨</span>
+      </div>
+      <h1 class="princess-title">Find your color!</h1>
+      
+      <!-- 커스텀 이름이 반영되는 부제목 (글씨 크기 확대) -->
+      <p class="princess-subtitle enlarged" id="mainSubtitle">
+        <span class="pearl-bullet">✦</span> 
+        오직 <span class="user-name-highlight" id="displayName">공주님</span> 만을 위한 코스메틱 컬러 톤 & 무드 정밀 분석
+        <span class="pearl-bullet">✦</span>
+        <button type="button" class="edit-name-btn" id="editNameBtn" title="이름 수정하기">
+          <i class="fa-solid fa-pen-nib"></i>
+        </button>
+      </p>
+
+      <div class="ribbon-divider">
+        <span class="ribbon-line"></span>
+        <span class="ribbon-bow">🎀</span>
+        <span class="ribbon-line"></span>
+      </div>
+    </header>
+
+    <!-- ========================================== -->
+    <!-- 상단 2분할 레이아웃: STEP 1 (입력) & STEP 2 (분석) -->
+    <!-- ========================================== -->
+    <main class="split-layout">
+      
+      <!-- ==================================================== -->
+      <!-- 왼쪽 패널: 이미지 업로드 & 붙여넣기 (STEP 1) -->
+      <!-- 글씨 크기 대폭 확대 & 묵직하고 알차게 공백 완전 제거 -->
+      <!-- ==================================================== -->
+      <section class="panel panel-left mirror-panel">
+        <div class="panel-header">
+          <div class="panel-badge">STEP 1</div>
+          <h2 class="panel-title"><i class="fa-solid fa-wand-magic-sparkles"></i> 컬러 이미지 업로드 & 붙여넣기</h2>
+          <p class="panel-desc">사진 파일 업로드 또는 클립보드 복사(Ctrl+V) 이미지 모두 가능해요 🩰</p>
+        </div>
+
+        <!-- 듀얼 업로드 & 붙여넣기 드롭존 -->
+        <div class="upload-dropzone" id="dropzone" tabindex="0">
+          <input type="file" id="fileInput" accept="image/*" class="file-input-hidden">
+          
+          <div class="dropzone-content">
+            <div class="mirror-frame-icon">
+              <i class="fa-regular fa-image upload-icon"></i>
+              <span class="floating-heart">💖</span>
+            </div>
+
+            <!-- 두 가지 방식 명시 안내 (글씨 확대 및 볼륨감 강화) -->
+            <div class="dual-upload-methods">
+              <div class="method-box">
+                <span class="method-tag"><i class="fa-solid fa-cloud-arrow-up"></i> 방식 1</span>
+                <p class="drop-primary-text">사진 파일 업로드</p>
+                <p class="drop-secondary-text">이미지 파일을 이곳에 끌어다 놓으세요</p>
+                <button type="button" class="princess-btn btn-rose btn-sm" id="browseBtn">
+                  <i class="fa-regular fa-folder-open"></i> 파일 선택하기
+                </button>
+              </div>
+
+              <div class="method-divider">
+                <span>또는</span>
+              </div>
+
+              <div class="method-box">
+                <span class="method-tag paste-tag"><i class="fa-solid fa-paste"></i> 방식 2</span>
+                <p class="drop-primary-text">복사한 이미지 붙여넣기</p>
+                <p class="drop-secondary-text">웹/캡처 화면에서 복사 후 <strong>Ctrl + V</strong> 누르기</p>
+                <button type="button" class="princess-btn btn-pearl btn-sm" id="pasteBtn">
+                  <i class="fa-regular fa-clipboard"></i> 클립보드에서 붙여넣기
+                </button>
+              </div>
+            </div>
+
+            <div class="paste-notice-badge">
+              <i class="fa-solid fa-keyboard"></i> 언제든 키보드로 <strong>Ctrl + V</strong>를 누르면 이미지가 즉시 분석됩니다!
+            </div>
+          </div>
+        </div>
+
+        <!-- 코덕을 위한 발색 샘플 프리셋 버튼들 (2x2 그리드: 가을 웜과 겨울 쿨이 같은 줄에 위치) -->
+        <div class="sample-preset-section">
+          <span class="sample-label"><i class="fa-solid fa-heart"></i> 코덕 추천 베스트 발색 샘플 (원클릭 체험):</span>
+          <div class="sample-chips">
+            <!-- 1행: 봄 웜 & 여름 쿨 -->
+            <button class="sample-btn" data-preset="springCoral" title="봄 웜 라이트 피치 코랄">
+              <span class="chip-dot" style="background:#FF7A70;"></span> 봄 웜 코랄 립
+            </button>
+            <button class="sample-btn" data-preset="summerMuted" title="여름 쿨 소프트 딸기우유 모브">
+              <span class="chip-dot" style="background:#E68BA7;"></span> 여름 쿨 모브 틴트
+            </button>
+            <!-- 2행: 가을 웜 & 겨울 쿨 (같은 줄에 나란히 위치) -->
+            <button class="sample-btn" data-preset="autumnBrick" title="가을 웜 딥 칠리 브릭 레드">
+              <span class="chip-dot" style="background:#B33F2E;"></span> 가을 웜 칠리 브릭
+            </button>
+            <button class="sample-btn" data-preset="winterCherry" title="겨울 쿨 비비드 플럼 체리">
+              <span class="chip-dot" style="background:#9B174C;"></span> 겨울 쿨 플럼 버건디
+            </button>
+          </div>
+        </div>
+
+        <!-- 이미지 프리뷰 & 스포이드(인터랙티브 캔버스) 영역 -->
+        <div class="preview-card" id="previewCard">
+          <div class="preview-header">
+            <span class="preview-title"><i class="fa-solid fa-eye-dropper"></i> 매직 스포이드 돋보기</span>
+            <span class="preview-guide">원하는 지점을 터치하거나 클릭하면 픽셀 색상이 콕 집어 추출됩니다!</span>
+          </div>
+
+          <!-- 앤틱 골드/핑크 거울 프레임 -->
+          <div class="mirror-wrapper" id="mirrorWrapper">
+            <canvas id="imageCanvas"></canvas>
+            
+            <!-- 돋보기 루페 (Magnifier Lens) -->
+            <div class="color-loupe" id="colorLoupe">
+              <canvas id="loupeCanvas" width="90" height="90"></canvas>
+              <div class="loupe-reticle"></div>
+              <div class="loupe-color-badge" id="loupeBadge">#FFFFFF</div>
+            </div>
+          </div>
+
+          <!-- 자동 추출된 화장품 대표 컬러 팔레트 (5구, 더 큼직한 스와치) -->
+          <div class="extracted-palette-box">
+            <span class="palette-title"><i class="fa-solid fa-palette"></i> 이미지 속 대표 발색 컬러 5구</span>
+            <div class="palette-swatches" id="paletteSwatches">
+              <!-- JS로 동적 생성 -->
+            </div>
+          </div>
+
+          <!-- 직접 색상 선택기(Color Picker 보조) -->
+          <div class="direct-picker-row">
+            <label for="colorPicker" class="picker-label">
+              <i class="fa-solid fa-paint-roller"></i> 원하는 컬러 직접 선택:
+            </label>
+            <div class="picker-controls">
+              <input type="color" id="colorPicker" value="#FF6B8B" class="princess-color-input">
+              <span class="hex-badge" id="selectedHexBadge">#FF6B8B</span>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ==================================================== -->
+      <!-- 오른쪽 패널: 웜/쿨, 명도, 채도 & 부위별 적합도 분석 (STEP 2) -->
+      <!-- 공백을 최소화하여 왼쪽 패널과 조화롭게 꽉 채움 -->
+      <!-- ==================================================== -->
+      <section class="panel panel-right royal-results-panel">
+        <div class="panel-header">
+          <div class="panel-badge royal">STEP 2</div>
+          <h2 class="panel-title"><i class="fa-solid fa-gem"></i> 컬러 진단 분석서</h2>
+          <p class="panel-desc">선택된 컬러의 웜/쿨 온도감, 명도, 채도를 정밀 측정했습니다 👑</p>
+        </div>
+
+        <!-- 현재 선택된 타겟 컬러 시그니처 뱃지 -->
+        <div class="selected-swatch-banner">
+          <div class="swatch-preview-circle" id="currentSwatchPreview">
+            <span class="swatch-sparkle">✨</span>
+          </div>
+          <div class="swatch-info">
+            <div class="swatch-tag" id="swatchPersonalTag">봄 웜톤 라이트 피치</div>
+            <div class="swatch-hex" id="swatchHexText">#FF6B8B</div>
+            <div class="swatch-rgb" id="swatchRgbText">RGB(255, 107, 139) · HSL(347°, 100%, 71%)</div>
+          </div>
+          <button class="copy-hex-btn" id="copyHexBtn" title="컬러 코드 복사">
+            <i class="fa-regular fa-copy"></i>
+          </button>
+        </div>
+
+        <!-- 3대 핵심 분석 게이지 카드: 1. 웜/쿨 2. 명도(밝기) 3. 채도(선명도) -->
+        <div class="metrics-grid">
+          
+          <!-- 1. 색상 (웜 / 쿨 톤) 퍼센티지 -->
+          <div class="metric-card warm-cool-card">
+            <div class="metric-card-header">
+              <div class="metric-title-group">
+                <span class="metric-icon warm-icon">🌡️</span>
+                <div>
+                  <h3 class="metric-name">색상 (Color Tone)</h3>
+                  <span class="metric-sub">웜톤 vs 쿨톤 온도감 판별</span>
+                </div>
+              </div>
+              <div class="tone-result-badge" id="toneBadge">웜톤 78%</div>
+            </div>
+
+            <!-- 듀얼 프로그레스 바 -->
+            <div class="dual-gauge-wrapper">
+              <div class="gauge-labels">
+                <span class="label-warm"><i class="fa-solid fa-sun"></i> WARM (따뜻함)</span>
+                <span class="label-cool"><i class="fa-solid fa-snowflake"></i> COOL (쿨/시원함)</span>
+              </div>
+              <div class="dual-progress-track">
+                <div class="dual-fill warm-fill" id="warmFill" style="width: 78%;">
+                  <span class="fill-percent-label" id="warmPercentLabel">78%</span>
+                </div>
+                <div class="dual-fill cool-fill" id="coolFill" style="width: 22%;">
+                  <span class="fill-percent-label" id="coolPercentLabel">22%</span>
+                </div>
+              </div>
+            </div>
+
+            <p class="metric-interpretation" id="toneAnalysisText">
+              살구빛과 골든 피치 베이스가 가득 머금어진 <strong>극강의 웜톤 컬러</strong>입니다.
+            </p>
+          </div>
+
+          <!-- 2. 명도 (밝고 어두움) 퍼센티지 -->
+          <div class="metric-card brightness-card">
+            <div class="metric-card-header">
+              <div class="metric-title-group">
+                <span class="metric-icon">🕊️</span>
+                <div>
+                  <h3 class="metric-name">명도 (Lightness)</h3>
+                  <span class="metric-sub">밝음과 어두움의 맑은 톤 레벨</span>
+                </div>
+              </div>
+              <div class="percent-main-badge" id="lightnessBadge">71%</div>
+            </div>
+
+            <div class="single-gauge-wrapper">
+              <div class="gauge-scale-labels">
+                <span>0% Deep Dark (어두움)</span>
+                <span>Medium (중간)</span>
+                <span>100% Pure Light (밝음)</span>
+              </div>
+              <div class="single-progress-track light-track">
+                <div class="single-fill light-fill" id="lightFill" style="width: 71%;">
+                  <div class="gauge-thumb-pearl"></div>
+                </div>
+              </div>
+            </div>
+
+            <p class="metric-interpretation" id="lightnessAnalysisText">
+              화사하게 빛을 밝혀주는 <strong>고명도(Light)</strong> 레벨로 맑고 투명한 인상을 연출합니다.
+            </p>
+          </div>
+
+          <!-- 3. 채도 (선명하고 흐림) 퍼센티지 -->
+          <div class="metric-card saturation-card">
+            <div class="metric-card-header">
+              <div class="metric-title-group">
+                <span class="metric-icon">🎨</span>
+                <div>
+                  <h3 class="metric-name">채도 (Saturation)</h3>
+                  <span class="metric-sub">선명함(비비드)과 흐림(뮤트)의 농도</span>
+                </div>
+              </div>
+              <div class="percent-main-badge" id="saturationBadge">85%</div>
+            </div>
+
+            <div class="single-gauge-wrapper">
+              <div class="gauge-scale-labels">
+                <span>0% Muted / Gray (흐림)</span>
+                <span>Soft (은은함)</span>
+                <span>100% Vivid / Clear (선명함)</span>
+              </div>
+              <div class="single-progress-track sat-track">
+                <div class="single-fill sat-fill" id="satFill" style="width: 85%;">
+                  <div class="gauge-thumb-gem"></div>
+                </div>
+              </div>
+            </div>
+
+            <p class="metric-interpretation" id="saturationAnalysisText">
+              또렷하고 생기 넘치는 <strong>고채도(Vivid)</strong> 컬러로 얼굴에 형광등을 켜줍니다.
+            </p>
+          </div>
+
+        </div>
+
+        <!-- 공백 메움 & 코덕 특화: 화장품 부위별 최적 매칭 지표 카드 -->
+        <div class="cosmetics-suitability-card">
+          <div class="suitability-header">
+            <span class="sub-header-icon"><i class="fa-solid fa-sparkles"></i></span>
+            <span class="suitability-title">화장품 부위별 추천 매칭도</span>
+            <span class="suitability-subtitle">현재 선택된 컬러 기준</span>
+          </div>
+
+          <div class="suitability-items-row">
+            <!-- 립 매칭 -->
+            <div class="suit-item">
+              <div class="suit-icon-box lip-box"><i class="fa-solid fa-lips"></i></div>
+              <div class="suit-details">
+                <div class="suit-name-score">
+                  <span class="suit-name">립 (Lip)</span>
+                  <span class="suit-stars" id="lipStars">★★★★★</span>
+                </div>
+                <div class="suit-note" id="lipNote">생기 충전 메인 립 추천</div>
+              </div>
+            </div>
+
+            <!-- 치크/블러셔 매칭 -->
+            <div class="suit-item">
+              <div class="suit-icon-box cheek-box"><i class="fa-solid fa-heart"></i></div>
+              <div class="suit-details">
+                <div class="suit-name-score">
+                  <span class="suit-name">블러셔 (Cheek)</span>
+                  <span class="suit-stars" id="cheekStars">★★★★☆</span>
+                </div>
+                <div class="suit-note" id="cheekNote">수채화 레이어링 추천</div>
+              </div>
+            </div>
+
+            <!-- 아이섀도우 매칭 -->
+            <div class="suit-item">
+              <div class="suit-icon-box eye-box"><i class="fa-solid fa-eye"></i></div>
+              <div class="suit-details">
+                <div class="suit-name-score">
+                  <span class="suit-name">아이 (Eye)</span>
+                  <span class="suit-stars" id="eyeStars">★★★☆☆</span>
+                </div>
+                <div class="suit-note" id="eyeNote">눈꼬리 포인트 음영 추천</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </section>
+
+    </main>
+
+    <!-- ======================================================= -->
+    <!-- 하단 와이드 패널: 공주님의 시크릿 코스메틱 처방전 (STEP 1 & 2 아래) -->
+    <!-- ======================================================= -->
+    <section class="panel panel-wide prescription-wide-section">
+      <div class="panel-header wide-header">
+        <div class="header-left">
+          <div class="panel-badge royal">SPECIAL PRESCRIPTION</div>
+          <h2 class="panel-title">
+            <span class="crown-mini">👑</span> 
+            <span id="prescriptionUserName">공주님</span>의 시크릿 코스메틱 처방전
+          </h2>
+          <p class="panel-desc">분석된 색상, 명도, 채도 데이터를 바탕으로 완성된 맞춤형 뷰티 솔루션입니다 ✨</p>
+        </div>
+        
+        <!-- 공유 & 이미지 저장 버튼 -->
+        <div class="wide-action-buttons">
+          <button class="princess-btn btn-pearl" id="shareReportBtn">
+            <i class="fa-solid fa-share-nodes"></i> 컬러 진단 결과 복사
+          </button>
+          <button class="princess-btn btn-gold" id="saveCardBtn">
+            <i class="fa-solid fa-crown"></i> 진단서 이미지로 소장하기
+          </button>
+        </div>
+      </div>
+
+      <!-- 처방전 와이드 그리드 콘텐츠 -->
+      <div class="prescription-grid">
+        
+        <!-- 1. 퍼스널 컬러 진단 카드 -->
+        <div class="prescription-card highlight-card">
+          <div class="card-top-label">
+            <i class="fa-solid fa-wand-magic-sparkles"></i> 베스트 퍼스널 톤
+          </div>
+          <div class="season-tone-display" id="bestSeasonValue">봄 웜 브라이트 (Spring Warm Bright)</div>
+          <p class="season-sub-note" id="seasonSubNote">맑고 또렷한 생기가 돋보이는 사랑스러운 톤</p>
+        </div>
+
+        <!-- 2. 추천 메이크업 포인트 & 팁 카드 -->
+        <div class="prescription-card makeup-card">
+          <div class="card-top-label">
+            <i class="fa-solid fa-lips"></i> 추천 메이크업 포인트
+          </div>
+          <div class="makeup-tip-body" id="makeupTipValue">
+            생기 넘치는 코랄 워터 틴트나 맑은 피치 수채화 블러셔로 연출하면 가장 사랑스러워요!
+          </div>
+        </div>
+
+        <!-- 3. 추천 제형 & 텍스처 가이드 -->
+        <div class="prescription-card texture-card">
+          <div class="card-top-label">
+            <i class="fa-solid fa-sparkles"></i> 찰떡 텍스처 & 피니시 가이드
+          </div>
+          <div class="texture-guide-body" id="textureGuideValue">
+            물막 광택 립글로스와 은은한 쉬머 펄 하이라이터 매치 추천
+          </div>
+        </div>
+
+        <!-- 4. 꿀조합 페어링 컬러 스와치 카드 (가로 확장) -->
+        <div class="prescription-card pairing-card">
+          <div class="card-top-label">
+            <i class="fa-solid fa-heart-pulse"></i> 함께 바르면 시너지 폭발! 꿀조합 페어링 컬러 3종
+          </div>
+          <div class="pairing-colors-row wide-pairing" id="pairingColorsRow">
+            <!-- JS로 자동 추천 매칭 색상 생성 -->
+          </div>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- 푸터 -->
+    <footer class="princess-footer">
+      <p>✨ Find your color! - Designed for Cosmetics Lovers & Princesses ✨</p>
+      <p class="footer-small">사진의 모든 픽셀은 외부 전송 없이 브라우저 내에서 안전하게 실시간 분석됩니다.</p>
+    </footer>
+  </div>
+
+  <!-- 토스트 알림창 (공주풍 핑크 토스트) -->
+  <div class="princess-toast" id="princessToast">
+    <span class="toast-icon">💖</span>
+    <span class="toast-msg" id="toastMsg">복사되었습니다!</span>
+  </div>
+
+  <!-- JavaScript 모듈 -->
+  <script src="script.js"></script>
+</body>
+</html>
